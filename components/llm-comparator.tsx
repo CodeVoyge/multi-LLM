@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -18,93 +17,90 @@ interface LLMResponse {
   content: string
   status: "loading" | "success" | "error"
   error?: string
-  timestamp?: number
   score?: number
+  latencyMs?: number
   highlights?: string[]
+  isExpert?: boolean
 }
 
-const DEFAULT_MODELS = [
-  { id: "google-gemini", name: "Gemini", provider: "Google", color: "#4285F4" },
-  { id: "deepseek-chat", name: "DeepSeek", provider: "DeepSeek", color: "#FF6B6B" },
-  { id: "huggingface-mixtral", name: "HuggingFace", provider: "HuggingFace", color: "#FFD700" },
-]
+interface RoutingInfo {
+  isTelecom: boolean
+  confidence: number
+  modelsUsed: string[]
+}
 
 export function LLMComparator() {
   const [prompt, setPrompt] = useState("")
   const [responses, setResponses] = useState<LLMResponse[]>([])
+  const [routing, setRouting] = useState<RoutingInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [voiceMode, setVoiceMode] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
+    e.preventDefault()
+    if (!prompt.trim()) return
 
-  if (!prompt.trim()) return
+    setIsLoading(true)
+    setShowAnalysis(false)
+    setRouting(null)
 
-  setIsLoading(true)
-  setShowAnalysis(false)
+    // Show 3 skeleton loading cards while waiting
+    setResponses([
+      { id: "l1", model: "Loading...", provider: "", content: "", status: "loading" },
+      { id: "l2", model: "Loading...", provider: "", content: "", status: "loading" },
+      { id: "l3", model: "Loading...", provider: "", content: "", status: "loading" },
+    ])
 
-  // show loading cards
-  setResponses(
-    DEFAULT_MODELS.map((model) => ({
-      id: model.id,
-      model: model.name,
-      provider: model.provider,
-      content: "",
-      status: "loading" as const,
-    })),
-  )
+    try {
+      const result = await fetch("/api/compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+        credentials: "include",
+      })
 
-  try {
-    const result = await fetch("/api/compare", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
-      credentials: "include",
-    })
+      if (!result.ok) {
+        const err = await result.json().catch(() => ({}))
+        throw new Error((err as { message?: string }).message || `Server error ${result.status}`)
+      }
 
-    if (!result.ok) {
-      throw new Error(`Network error: ${result.status}`)
+      const json = await result.json()
+
+      if (!json.responses || !Array.isArray(json.responses)) {
+        throw new Error("Invalid server response")
+      }
+
+      setResponses(json.responses)
+      setRouting(json.routing ?? null)
+      setShowAnalysis(true)
+    } catch (error) {
+      setResponses([
+        {
+          id: "err",
+          model: "Error",
+          provider: "",
+          content: "",
+          status: "error",
+          error: error instanceof Error ? error.message : "Unknown error",
+        },
+      ])
+    } finally {
+      setIsLoading(false)
     }
-
-    // SAFETY CHECK: Make sure server returned correct shape
-    const json = await result.json()
-
-    if (!json.responses || !Array.isArray(json.responses)) {
-      throw new Error("Invalid server response: `responses` missing")
-    }
-
-    setResponses(json.responses)
-    setShowAnalysis(true)
-  } catch (error) {
-    setResponses(
-      DEFAULT_MODELS.map((model) => ({
-        id: model.id,
-        model: model.name,
-        provider: model.provider,
-        content: "",
-        status: "error" as const,
-        error: error instanceof Error ? error.message : "Unknown error",
-      })),
-    )
-  } finally {
-    setIsLoading(false)
-  }
-}
-
-
-  const handleVoiceInput = (text: string) => {
-    setPrompt(text)
   }
 
   return (
     <div className="space-y-8">
-      {/* Input Section */}
+
+      {/* Input box */}
       <Card className="bg-slate-800 border-slate-700">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Compare LLM Responses</CardTitle>
-            <CardDescription>Enter a prompt to see responses from multiple AI models side-by-side</CardDescription>
+            <CardDescription>
+              Telecom questions automatically route to your custom Telecom Expert model
+            </CardDescription>
           </div>
           <Button
             onClick={() => setVoiceMode(!voiceMode)}
@@ -115,49 +111,65 @@ export function LLMComparator() {
           </Button>
         </CardHeader>
         <CardContent>
-          {voiceMode && <VoiceInput onTranscribe={handleVoiceInput} />}
-
+          {voiceMode && <VoiceInput onTranscribe={setPrompt} />}
           <form
             onSubmit={handleSubmit}
             className={`space-y-4 ${voiceMode ? "mt-6 pt-6 border-t border-slate-700" : ""}`}
           >
             <Textarea
-              placeholder="Enter your prompt here or use voice mode..."
+              placeholder="Ask anything — e.g. 'What is 5G network slicing?' or 'Explain black holes'"
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              onChange={e => setPrompt(e.target.value)}
               disabled={isLoading}
               className="min-h-32 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
             />
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <Button
                 type="submit"
                 disabled={isLoading || !prompt.trim()}
                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
-                {isLoading ? (
-                  <>
-                    <Spinner className="mr-2 h-4 w-4" />
-                    Comparing...
-                  </>
-                ) : (
-                  "Compare Responses"
-                )}
+                {isLoading
+                  ? <><Spinner className="mr-2 h-4 w-4" />Comparing...</>
+                  : "Compare Responses"
+                }
               </Button>
-              <span className="text-sm text-slate-400 flex items-center">Response time: 10–20 seconds</span>
+              <span className="text-sm text-slate-400">10–20 seconds</span>
             </div>
           </form>
         </CardContent>
       </Card>
 
-      {/* Analysis Panel */}
-      {showAnalysis && responses.length > 0 && <AnalysisPanel responses={responses} />}
+      {/* Routing badge — appears after response loads */}
+      {routing && !isLoading && (
+        <div className="flex flex-wrap items-center gap-3 px-1">
+          <span className={`text-xs font-medium px-3 py-1 rounded-full ${
+            routing.isTelecom
+              ? "bg-teal-900 text-teal-300"
+              : "bg-slate-700 text-slate-300"
+          }`}>
+            {routing.isTelecom
+              ? `Telecom query detected — ${Math.round(routing.confidence * 100)}% confidence`
+              : "General query"
+            }
+          </span>
+          <span className="text-xs text-slate-500">
+            Models used: {routing.modelsUsed.join(", ")}
+          </span>
+        </div>
+      )}
 
-      {/* Responses Grid */}
+      {/* Analysis panel */}
+      {showAnalysis && responses.length > 0 && (
+        <AnalysisPanel responses={responses} />
+      )}
+
+      {/* Response cards */}
       {responses.length > 0 && (
         <div>
           <h2 className="text-xl font-bold text-white mb-4">Responses</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {responses.map((response) => (
+            {responses.map(response => (
               <ResponseCard
                 key={response.id}
                 model={response.model}
@@ -167,16 +179,19 @@ export function LLMComparator() {
                 error={response.error}
                 score={response.score}
                 highlights={response.highlights}
+                isExpert={response.isExpert}
               />
             ))}
           </div>
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty state */}
       {responses.length === 0 && !isLoading && (
         <div className="text-center py-16">
-          <p className="text-slate-400 text-lg">Enter a prompt above to compare responses from multiple LLMs</p>
+          <p className="text-slate-400 text-lg">
+            Enter a prompt above to compare responses from multiple LLMs
+          </p>
         </div>
       )}
     </div>
