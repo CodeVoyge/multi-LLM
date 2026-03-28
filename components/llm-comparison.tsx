@@ -19,8 +19,6 @@ export interface ModelResult {
   error?: string
 }
 
-// Production Models - Stable and recommended for production use
-// Preview Models - For evaluation only, may be discontinued at short notice
 const AVAILABLE_MODELS = [
   { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B", tag: "Production" },
   { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B", tag: "Fast" },
@@ -28,6 +26,7 @@ const AVAILABLE_MODELS = [
   { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", tag: "Google" },
   { id: "openai-gpt-oss-120b", name: "MIXTRAL", tag: "Groq" },
   { id: "openai-gpt-oss-20b", name: "DEEPSEEK", tag: "Groq" },
+  { id: "telecom-expert", name: "Telecom Expert", tag: "Custom" },
 ]
 
 export function LLMComparison() {
@@ -105,7 +104,9 @@ export function LLMComparison() {
   }
 
   const toggleModel = (modelId: string) => {
-    setSelectedModels((prev) => (prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]))
+    setSelectedModels((prev) =>
+      prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]
+    )
   }
 
   return (
