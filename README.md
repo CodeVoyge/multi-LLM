@@ -133,13 +133,3 @@ npm run start   # serve production build
 ```
 
 ---
-
-## Contributors
-
-| Name | Roll No. |
-|------|----------|
-| Mahi Chandrawat | 22EEMCS058 |
-| Gargi Sharma | 22EEMCS039 |
-| Kaushiki Parashar | 22EEMCS052 |
-
-Supervisor: Dr. Amarjeet Poonia — Department of Information Technology
