@@ -1,36 +1,53 @@
+"use client"
 import { LLMComparison } from "@/components/llm-comparison"
-import { BrainIcon } from "@/components/icons"
 
-export default function Home() {
+export default function Compare() {
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Syne:wght@400;500;700&display=swap');
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{--sand:#e8e2d9;--cream:#f2ede6;--ink:#1c1a17;--ink-light:#5a5650;--accent:#c4622d;--border:rgba(28,26,23,0.12);--telecom:#2d6a4f;--telecom-bg:#d8f3dc;}
+        html,body{margin:0;padding:0;background:#e8e2d9;font-family:'Syne',sans-serif;color:#1c1a17;}
+        .a-nav{position:sticky;top:0;z-index:100;background:#f2ede6;border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;}
+        .a-nav-left{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);display:flex;align-items:center;gap:10px;}
+        .a-nav-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease infinite;}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.7)}}
+        .a-nav-right{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-light);}
+        .a-badge{background:var(--telecom-bg);color:var(--telecom);font-size:10px;font-weight:500;letter-spacing:0.5px;padding:3px 9px;border-radius:2px;}
+        .compare-wrap{max-width:900px;margin:0 auto;padding:48px 24px 80px;}
+        .compare-title{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,56px);font-weight:300;line-height:1;letter-spacing:-0.5px;margin-bottom:8px;}
+        .compare-title em{font-style:italic;color:var(--accent);}
+        .compare-sub{font-size:14px;color:var(--ink-light);margin-bottom:40px;}
+        .a-footer{text-align:center;padding:32px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-light);border-top:1px solid var(--border);}
+        .a-footer a{color:var(--ink-light);text-decoration:none;}
+        .a-footer a:hover{color:var(--ink);}
+      `}</style>
 
-      <div className="relative mx-auto max-w-5xl px-6 py-20">
-        <header className="mb-16">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-white">
-              <BrainIcon className="h-5 w-5" />
-            </div>
-            <div className="h-6 w-px bg-neutral-200" />
-            <span className="text-xs font-medium tracking-wider text-neutral-400 uppercase">Powered by Groq</span>
-          </div>
-          <h1 className="text-center text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl">
-            LLM Comparison
-          </h1>
-          <p className="mx-auto mt-4 max-w-lg text-center text-neutral-500 text-balance">
-            Compare how different large language models respond to the same prompt, side by side.
-          </p>
-        </header>
+      <nav className="a-nav">
+        <div className="a-nav-left">
+          <div className="a-nav-dot" />
+          Multi — LLM
+        </div>
+        <div className="a-nav-right">
+          Telecom Expert active
+          <span className="a-badge">✦ Custom</span>
+        </div>
+      </nav>
 
+      <div className="compare-wrap">
+        <div className="compare-title">
+          Ask once, <em>hear every</em> answer.
+        </div>
+        <p className="compare-sub">
+          Compare how different models respond to the same prompt, side by side.
+        </p>
         <LLMComparison />
-
-        <footer className="mt-20 flex items-center justify-center gap-4 text-xs text-neutral-400">
-          <span>Built with Next.js</span>
-          <span className="h-1 w-1 rounded-full bg-neutral-300" />
-          <span>Groq API</span>
-        </footer>
       </div>
-    </main>
+
+      <footer className="a-footer">
+        Built with Next.js &nbsp;·&nbsp; <a href="#">Groq API</a> &nbsp;·&nbsp; <a href="#">HuggingFace Spaces</a>
+      </footer>
+    </>
   )
 }
