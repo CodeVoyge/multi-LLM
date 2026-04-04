@@ -1,149 +1,256 @@
 "use client"
-import { useRouter } from "next/navigation"
-import { useRef } from "react"
+import { LLMComparison } from "@/components/llm-comparison"
 
-export default function LandingPage() {
-  const router = useRouter()
-  const barRef = useRef<HTMLDivElement>(null)
-  const labelRef = useRef<HTMLDivElement>(null)
-
-  function startTransition() {
-    const landing = document.getElementById("landing")!
-    const trans = document.getElementById("transition")!
-    landing.style.opacity = "0"
-    landing.style.transform = "translateY(-24px)"
-    landing.style.transition = "opacity 0.6s ease, transform 0.6s ease"
-    setTimeout(() => { trans.style.opacity = "1"; trans.style.pointerEvents = "all" }, 400)
-    const steps = [
-      { id: "tw1", pct: 30,  label: "Waking up models...",      delay: 700  },
-      { id: "tw2", pct: 65,  label: "Loading Telecom Expert...", delay: 1900 },
-      { id: "tw3", pct: 100, label: "All systems ready",        delay: 3300 },
-    ]
-    steps.forEach(({ id, pct, label, delay }) => {
-      setTimeout(() => {
-        const el = document.getElementById(id)
-        if (el) { el.style.opacity = "1"; el.style.transform = "translateY(0)" }
-        if (barRef.current) { barRef.current.style.transition = "width 0.9s ease"; barRef.current.style.width = pct + "%" }
-        if (labelRef.current) labelRef.current.textContent = label
-      }, delay)
-    })
-    setTimeout(() => router.push("/compare"), 4400)
-  }
-
+export default function Compare() {
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Syne:wght@400;500;700&display=swap');
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        :root{--sand:#e8e2d9;--cream:#f2ede6;--ink:#1c1a17;--ink-light:#5a5650;--accent:#c4622d;--accent-muted:#e8b49a;--telecom:#2d6a4f;--border:rgba(28,26,23,0.12)}
-        html,body{margin:0;padding:0;background:#e8e2d9;font-family:'Syne',sans-serif;color:#1c1a17;overflow-x:hidden}
-        #landing{min-height:100vh;display:grid;grid-template-rows:56px 1fr auto}
-        .l-nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;border-bottom:1px solid var(--border);height:56px}
-        .l-nav-brand{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
-        .l-nav-links{display:flex;gap:36px;list-style:none;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-light)}
-        .l-nav-links li{cursor:pointer;transition:color 0.15s}.l-nav-links li:hover{color:var(--ink)}
-        .l-nav-cta{font-size:12px;letter-spacing:1px;text-transform:uppercase;background:var(--ink);color:var(--cream);border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:500;padding:8px 18px;border-radius:2px;transition:background 0.15s}
-        .l-nav-cta:hover{background:var(--accent)}
-        .l-hero{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;grid-template-rows:1fr 1px 1fr;border-bottom:1px solid var(--border);min-height:calc(100vh - 112px)}
-        .l-vline{background:var(--border)}.l-hline{background:var(--border);grid-column:1/-1}
-        .cell-a{padding:40px;display:flex;flex-direction:column;justify-content:flex-end;animation:fadeIn 1s ease 0.1s both}
-        .cell-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-light);margin-bottom:8px}
-        .cell-sub{font-size:13px;color:var(--ink-light);line-height:1.6;max-width:220px}
-        .cell-b{padding:40px;display:flex;align-items:center;justify-content:center;animation:fadeIn 1s ease 0.2s both}
-        .logo-mark{width:72px;height:72px;position:relative}
-        .logo-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
-        .logo-ring:nth-child(1){border-color:var(--accent);animation:spin 8s linear infinite;clip-path:inset(0 50% 0 0)}
-        .logo-ring:nth-child(2){border-color:var(--ink);animation:spin 12s linear infinite reverse;clip-path:inset(0 0 50% 0);width:90%;height:90%;top:5%;left:5%}
-        .logo-ring:nth-child(3){border-color:var(--accent-muted);animation:spin 6s linear infinite;width:60%;height:60%;top:20%;left:20%}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .cell-c{padding:40px;display:flex;align-items:flex-end;justify-content:flex-end;animation:fadeIn 1s ease 0.15s both}
-        .scroll-hint{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-light)}
-        .scroll-line{width:1px;height:32px;background:var(--border);animation:scrollPulse 2s ease-in-out infinite}
-        @keyframes scrollPulse{0%,100%{opacity:0.3}50%{opacity:1}}
-        .cell-d{grid-column:1/4;padding:40px 40px 48px;display:flex;align-items:flex-end;animation:fadeIn 1s ease 0.3s both}
-        .hero-headline{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,7vw,96px);font-weight:300;line-height:0.95;letter-spacing:-1px}
-        .hero-headline em{font-style:italic;color:var(--accent)}
-        .hero-headline .line2{display:block;padding-left:80px}
-        .cell-e{grid-column:5/6;padding:40px;display:flex;flex-direction:column;justify-content:flex-end;gap:24px;animation:fadeIn 1s ease 0.4s both}
-        .hero-desc{font-size:14px;line-height:1.75;color:var(--ink-light)}
-        .hero-desc strong{color:var(--ink);font-weight:500}
-        .enter-btn{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:var(--cream);border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:500;padding:14px 22px;border-radius:2px;transition:background 0.2s,transform 0.15s;width:fit-content}
-        .enter-btn:hover{background:#a8521f;transform:translateX(3px)}
-        .l-footer{padding:18px 40px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-light)}
-        .model-tags{display:flex;gap:12px;flex-wrap:wrap}
-        .model-tag-chip{padding:4px 10px;border:1px solid var(--border);border-radius:2px;font-size:10px;letter-spacing:0.5px;color:var(--ink-light)}
-        .model-tag-chip.special{border-color:#2d6a4f;color:#2d6a4f}
-        #transition{position:fixed;inset:0;z-index:999;background:#1c1a17;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;opacity:0;pointer-events:none;transition:opacity 0.5s ease}
-        .t-word{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,5vw,68px);font-weight:300;color:#f2ede6;letter-spacing:-0.5px;opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease}
-        .t-word em{font-style:italic;color:#c4622d}
-        .t-progress-wrap{width:240px;height:1px;background:rgba(255,255,255,0.12);overflow:hidden}
-        .t-progress-bar{height:100%;width:0%;background:#c4622d}
-        .t-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35)}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --sand: #e8e2d9;
+          --cream: #f2ede6;
+          --ink: #1c1a17;
+          --ink-light: #5a5650;
+          --accent: #c4622d;
+          --border: rgba(28,26,23,0.12);
+          --telecom: #2d6a4f;
+          --telecom-bg: #d8f3dc;
+          --white: #faf8f5;
+        }
+
+        html, body {
+          margin: 0; padding: 0;
+          background: var(--sand) !important;
+          font-family: 'Syne', sans-serif !important;
+          color: var(--ink) !important;
+        }
+
+        /* ── NAV ── */
+        .a-nav {
+          position: sticky; top: 0; z-index: 100;
+          background: var(--cream);
+          border-bottom: 1px solid var(--border);
+          height: 56px;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 48px;
+        }
+        .a-nav-left {
+          font-size: 13px; font-weight: 700;
+          letter-spacing: 2px; text-transform: uppercase;
+          display: flex; align-items: center; gap: 10px;
+        }
+        .a-nav-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: var(--accent);
+          animation: pulse 2s ease infinite;
+        }
+        @keyframes pulse {
+          0%,100% { opacity:1; transform:scale(1); }
+          50% { opacity:0.4; transform:scale(0.65); }
+        }
+        .a-nav-right {
+          display: flex; align-items: center; gap: 10px;
+          font-size: 12px; color: var(--ink-light);
+        }
+        .a-badge {
+          background: var(--telecom-bg); color: var(--telecom);
+          font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+          padding: 4px 10px; border-radius: 2px;
+        }
+
+        /* ── PAGE WRAP ── */
+        .compare-wrap {
+          max-width: 1000px; margin: 0 auto;
+          padding: 56px 40px 100px;
+        }
+
+        /* ── HEADING ── */
+        .compare-heading {
+          margin-bottom: 48px;
+        }
+        .compare-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(40px, 5vw, 64px);
+          font-weight: 300; line-height: 1.05;
+          letter-spacing: -0.5px;
+          margin-bottom: 12px;
+        }
+        .compare-title em { font-style: italic; color: var(--accent); }
+        .compare-sub {
+          font-size: 14px; color: var(--ink-light);
+          line-height: 1.7; max-width: 480px;
+        }
+
+        /* ── OVERRIDE LLMComparison INTERNALS ── */
+
+        /* Prompt card */
+        .compare-wrap form,
+        .compare-wrap [class*="rounded"],
+        .compare-wrap [class*="border"] {
+          border-radius: 3px !important;
+        }
+
+        /* Textarea area */
+        .compare-wrap textarea {
+          font-family: 'Syne', sans-serif !important;
+          font-size: 15px !important;
+          line-height: 1.75 !important;
+          color: var(--ink) !important;
+          background: var(--white) !important;
+          padding: 20px 24px !important;
+          min-height: 120px !important;
+          border: 1px solid var(--border) !important;
+          border-radius: 3px !important;
+          width: 100% !important;
+          resize: none !important;
+          outline: none !important;
+        }
+        .compare-wrap textarea::placeholder {
+          color: #bbb6ad !important;
+        }
+
+        /* All white/gray backgrounds → cream/sand */
+        .compare-wrap [class*="bg-white"],
+        .compare-wrap [class*="bg-neutral-50"],
+        .compare-wrap [class*="bg-neutral-100"] {
+          background-color: var(--white) !important;
+        }
+        .compare-wrap [class*="bg-neutral-900"],
+        .compare-wrap [class*="bg-black"] {
+          background-color: var(--ink) !important;
+        }
+
+        /* Text overrides */
+        .compare-wrap [class*="text-neutral-900"],
+        .compare-wrap [class*="text-neutral-800"] {
+          color: var(--ink) !important;
+          font-family: 'Syne', sans-serif !important;
+        }
+        .compare-wrap [class*="text-neutral-500"],
+        .compare-wrap [class*="text-neutral-400"] {
+          color: var(--ink-light) !important;
+        }
+        .compare-wrap [class*="text-neutral-600"] {
+          color: var(--ink-light) !important;
+        }
+
+        /* Model selector chips */
+        .compare-wrap [class*="rounded-full"] {
+          border-radius: 2px !important;
+          font-family: 'Syne', sans-serif !important;
+          font-size: 12px !important;
+          letter-spacing: 0.3px !important;
+          padding: 8px 16px !important;
+        }
+
+        /* Result cards */
+        .compare-wrap [class*="card"],
+        .compare-wrap [class*="Card"] {
+          background: var(--white) !important;
+          border: 1px solid var(--border) !important;
+          border-radius: 3px !important;
+          padding: 0 !important;
+        }
+
+        /* Compare button */
+        .compare-wrap button[type="submit"],
+        .compare-wrap [class*="bg-neutral-900"][class*="text-white"] {
+          background: var(--ink) !important;
+          color: var(--cream) !important;
+          font-family: 'Syne', sans-serif !important;
+          font-size: 13px !important;
+          font-weight: 500 !important;
+          letter-spacing: 0.5px !important;
+          padding: 12px 28px !important;
+          border-radius: 2px !important;
+          border: none !important;
+          transition: background 0.15s !important;
+        }
+        .compare-wrap button[type="submit"]:hover {
+          background: var(--accent) !important;
+        }
+
+        /* Results section heading */
+        .compare-wrap h2,
+        .compare-wrap h3 {
+          font-family: 'Cormorant Garamond', serif !important;
+          font-weight: 300 !important;
+          letter-spacing: -0.3px !important;
+        }
+        .compare-wrap h2 { font-size: 28px !important; margin-bottom: 20px !important; }
+
+        /* Result card text */
+        .compare-wrap p,
+        .compare-wrap [class*="prose"] {
+          font-family: 'Syne', sans-serif !important;
+          font-size: 14px !important;
+          line-height: 1.85 !important;
+          color: #3a3632 !important;
+        }
+
+        /* Spacing fixes — add breathing room everywhere */
+        .compare-wrap > * + * { margin-top: 28px; }
+        .compare-wrap [class*="grid"] { gap: 20px !important; }
+        .compare-wrap [class*="flex"][class*="gap"] { gap: 12px !important; }
+        .compare-wrap [class*="p-4"] { padding: 20px !important; }
+        .compare-wrap [class*="p-6"] { padding: 28px !important; }
+        .compare-wrap [class*="mb-4"] { margin-bottom: 20px !important; }
+        .compare-wrap [class*="mb-6"] { margin-bottom: 28px !important; }
+        .compare-wrap [class*="mt-4"] { margin-top: 20px !important; }
+        .compare-wrap [class*="mt-6"] { margin-top: 28px !important; }
+
+        /* Stats row at bottom of cards */
+        .compare-wrap [class*="border-t"] {
+          border-top: 1px solid var(--border) !important;
+          padding-top: 12px !important;
+          margin-top: 16px !important;
+        }
+
+        /* ── FOOTER ── */
+        .a-footer {
+          text-align: center;
+          padding: 36px;
+          font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+          color: var(--ink-light);
+          border-top: 1px solid var(--border);
+        }
+        .a-footer a { color: var(--ink-light); text-decoration: none; }
+        .a-footer a:hover { color: var(--ink); }
+
+        /* Remove old grid background */
+        .fixed.inset-0 { display: none !important; }
       `}</style>
 
-      <div id="landing">
-        <nav className="l-nav">
-          <div className="l-nav-brand">Multi — LLM</div>
-          <ul className="l-nav-links"><li>Abilities</li><li>Models</li><li>About</li></ul>
-          <button className="l-nav-cta" onClick={startTransition}>Launch App</button>
-        </nav>
-        <main>
-          <div className="l-hero">
-            <div className="cell-a">
-              <div className="cell-label">Multi-LLM Aggregator</div>
-              <div className="cell-sub">One prompt. Every answer. Powered by domain-specialized AI.</div>
-            </div>
-            <div className="l-vline" />
-            <div className="cell-b">
-              <div className="logo-mark">
-                <div className="logo-ring" /><div className="logo-ring" /><div className="logo-ring" />
-              </div>
-            </div>
-            <div className="l-vline" />
-            <div className="cell-c">
-              <div className="scroll-hint"><div className="scroll-line" /><span>Enter</span></div>
-            </div>
-            <div className="l-hline" />
-            <div className="cell-d">
-              <div className="hero-headline">
-                Ask once,<br/>
-                <span className="line2"><em>hear every</em><br/>answer.</span>
-              </div>
-            </div>
-            <div className="l-vline" />
-            <div className="cell-e">
-              <p className="hero-desc">
-                Compare responses from <strong>Llama, Gemini, Mixtral, DeepSeek</strong> — and our custom <strong>Telecom Expert</strong> model, fine-tuned on 5G, LTE, IMS, and VoLTE.
-              </p>
-              <button className="enter-btn" onClick={startTransition}>
-                Enter the app
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M3 8h10M9 4l4 4-4 4"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </main>
-        <div className="l-footer">
-          <span>2025 Major Project - Department of IT</span>
-          <div className="model-tags">
-            <span className="model-tag-chip">Llama 3.3 70B</span>
-            <span className="model-tag-chip">Gemini 1.5</span>
-            <span className="model-tag-chip">Mixtral</span>
-            <span className="model-tag-chip">DeepSeek</span>
-            <span className="model-tag-chip special">Telecom Expert ✦</span>
-          </div>
+      <nav className="a-nav">
+        <div className="a-nav-left">
+          <div className="a-nav-dot" />
+          Multi — LLM
         </div>
+        <div className="a-nav-right">
+          Telecom Expert active
+          <span className="a-badge">✦ Custom</span>
+        </div>
+      </nav>
+
+      <div className="compare-wrap">
+        <div className="compare-heading">
+          <div className="compare-title">
+            Ask once, <em>hear every</em> answer.
+          </div>
+          <p className="compare-sub">
+            Compare how different models respond to the same prompt — including our domain-trained Telecom Expert.
+          </p>
+        </div>
+
+        <LLMComparison />
       </div>
 
-      <div id="transition">
-        <div id="tw1" className="t-word">Initializing <em>models</em></div>
-        <div id="tw2" className="t-word">Loading <em>Telecom Expert</em></div>
-        <div id="tw3" className="t-word">Ready to <em>compare</em></div>
-        <div className="t-progress-wrap"><div className="t-progress-bar" ref={barRef} /></div>
-        <div className="t-label" ref={labelRef}>Setting up</div>
-      </div>
+      <footer className="a-footer">
+        Built with Next.js &nbsp;·&nbsp; <a href="#">Groq API</a> &nbsp;·&nbsp; <a href="#">HuggingFace Spaces</a>
+      </footer>
     </>
   )
 }
