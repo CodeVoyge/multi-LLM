@@ -23,9 +23,9 @@ const AVAILABLE_MODELS = [
   { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B", tag: "Production" },
   { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B", tag: "Fast" },
   { id: "meta-llama/llama-4-scout-17b-16e-instruct", name: "Llama 4 Scout", tag: "Preview" },
-  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", tag: "Google" },
-  { id: "openai-gpt-oss-120b", name: "MIXTRAL", tag: "Groq" },
-  { id: "openai-gpt-oss-20b", name: "DEEPSEEK", tag: "Groq" },
+  { id: "openai/gpt-oss-120b", name: "GPT-OSS 120B", tag: "OpenAI" },
+  { id: "openai/gpt-oss-20b", name: "GPT-OSS 20B", tag: "OpenAI" },
+  { id: "qwen/qwen3-32b", name: "Qwen 3 32B", tag: "Qwen" },
   { id: "telecom-expert", name: "Telecom Expert", tag: "Custom" },
 ]
 
@@ -52,7 +52,7 @@ export function LLMComparison() {
         tokensPerSecond: 0,
         totalTokens: 0,
         status: "pending",
-      })),
+      }))
     )
 
     const promises = selectedModels.map(async (modelId) => {
@@ -110,30 +110,32 @@ export function LLMComparison() {
   }
 
   return (
-    <motion.div className="space-y-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+    <motion.div
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <motion.div
-        className="rounded-2xl border border-neutral-200/80 bg-white p-8 shadow-sm"
+        className="rounded-3xl border border-neutral-200/80 bg-white p-8 shadow-sm"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <div className="space-y-8">
+        <div className="space-y-6">
           <PromptInput value={prompt} onChange={setPrompt} disabled={isComparing} />
-
           <div className="h-px bg-neutral-100" />
-
           <ModelSelector
             models={AVAILABLE_MODELS}
             selectedModels={selectedModels}
             onToggle={toggleModel}
             disabled={isComparing}
           />
-
           <div className="flex justify-end pt-2">
             <Button
               onClick={handleCompare}
               disabled={isComparing || !prompt.trim() || selectedModels.length === 0}
-              className="group h-11 gap-2 rounded-xl bg-neutral-900 px-6 text-sm font-medium text-white transition-all hover:bg-neutral-800 disabled:opacity-40"
+              className="group h-11 gap-2 rounded-2xl bg-neutral-900 px-6 text-sm font-medium text-white transition-all hover:bg-neutral-700 disabled:opacity-40"
             >
               {isComparing ? (
                 <>
@@ -152,7 +154,11 @@ export function LLMComparison() {
       </motion.div>
 
       {results.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <ComparisonResults results={results} />
         </motion.div>
       )}
