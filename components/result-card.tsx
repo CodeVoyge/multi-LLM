@@ -8,9 +8,10 @@ import { TimeIcon, SpeedIcon, TokenIcon, ErrorIcon, LoadingSpinner, CopyIcon, Ch
 
 interface ResultCardProps {
   result: ModelResult
+  index: number
 }
 
-export function ResultCard({ result }: ResultCardProps) {
+export function ResultCard({ result, index }: ResultCardProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -21,153 +22,116 @@ export function ResultCard({ result }: ResultCardProps) {
     }
   }
 
+  const isCustom = result.model === "telecom-expert"
+
   return (
     <motion.div
-      className="flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200/80 bg-white"
-      layout
-      whileHover={{ borderColor: "rgba(0,0,0,0.15)" }}
-      transition={{ duration: 0.2 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
+      className={`flex flex-col rounded-3xl border bg-white shadow-sm overflow-hidden ${
+        isCustom ? "border-blue-200 ring-1 ring-blue-100" : "border-neutral-200"
+      }`}
     >
-      <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-100 text-sm font-semibold text-neutral-700">
+      {/* Header */}
+      <div className={`flex items-center justify-between px-5 py-4 border-b ${
+        isCustom ? "bg-blue-50 border-blue-100" : "bg-neutral-50 border-neutral-100"
+      }`}>
+        <div className="flex items-center gap-2.5">
+          <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${
+            isCustom ? "bg-blue-600 text-white" : "bg-neutral-800 text-white"
+          }`}>
             {result.modelName.charAt(0)}
           </div>
-          <span className="font-medium text-neutral-900">{result.modelName}</span>
+          <div>
+            <p className="text-sm font-semibold text-neutral-800">{result.modelName}</p>
+            {isCustom && (
+              <span className="text-xs font-medium text-blue-600">Domain Expert</span>
+            )}
+          </div>
         </div>
 
+        {result.status === "success" && (
+          <button
+            onClick={handleCopy}
+            className="flex h-7 w-7 items-center justify-center rounded-xl text-neutral-400 hover:bg-neutral-200 hover:text-neutral-600 transition-colors"
+          >
+            {copied ? <CheckIcon className="h-3.5 w-3.5 text-green-500" /> : <CopyIcon className="h-3.5 w-3.5" />}
+          </button>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 p-5">
         <AnimatePresence mode="wait">
           {result.status === "pending" && (
             <motion.div
-              key="pending"
+              key="loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-1.5 text-neutral-400"
+              className="flex h-32 items-center justify-center"
             >
-              <LoadingSpinner className="h-3.5 w-3.5" />
-              <span className="text-xs">Processing</span>
+              <div className="flex flex-col items-center gap-3">
+                <LoadingSpinner className="h-6 w-6 text-neutral-400" />
+                <p className="text-xs text-neutral-400">Waiting for response...</p>
+              </div>
             </motion.div>
           )}
-          {result.status === "success" && (
-            <motion.button
-              key="copy"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 rounded-md px-2 py-1 text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-600"
-            >
-              {copied ? <CheckIcon className="h-3.5 w-3.5 text-green-500" /> : <CopyIcon className="h-3.5 w-3.5" />}
-              <span className="text-xs">{copied ? "Copied" : "Copy"}</span>
-            </motion.button>
-          )}
+
           {result.status === "error" && (
             <motion.div
               key="error"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-1.5 text-red-400"
+              className="flex h-32 items-center justify-center"
             >
-              <ErrorIcon className="h-3.5 w-3.5" />
-              <span className="text-xs">Error</span>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <ErrorIcon className="h-6 w-6 text-red-400" />
+                <p className="text-sm font-medium text-red-600">Request failed</p>
+                <p className="text-xs text-neutral-400 max-w-[200px] break-words">{result.error}</p>
+              </div>
+            </motion.div>
+          )}
+
+          {result.status === "success" && (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="prose prose-sm prose-neutral max-w-none overflow-hidden"
+            >
+              <div className="text-sm leading-relaxed text-neutral-700 break-words overflow-wrap-anywhere [&>*]:max-w-full [&>pre]:overflow-x-auto [&>pre]:whitespace-pre-wrap">
+                <ReactMarkdown>{result.text}</ReactMarkdown>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <div className="flex-1 overflow-auto p-5">
-        {result.status === "pending" && (
-          <div className="flex h-32 items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <LoadingSpinner className="h-6 w-6 text-neutral-300" />
-              <span className="text-sm text-neutral-400">Generating response...</span>
-            </div>
+      {/* Footer metrics */}
+      {result.status === "success" && (
+        <div className={`flex items-center gap-4 border-t px-5 py-3 ${
+          isCustom ? "border-blue-100 bg-blue-50/50" : "border-neutral-100 bg-neutral-50/50"
+        }`}>
+          <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+            <TimeIcon className="h-3 w-3" />
+            <span>{result.responseTime.toFixed(2)}s</span>
           </div>
-        )}
-
-        {result.status === "error" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex h-32 flex-col items-center justify-center gap-2 rounded-lg bg-red-50/50 p-4"
-          >
-            <ErrorIcon className="h-6 w-6 text-red-300" />
-            <p className="text-center text-sm text-red-500">{result.error}</p>
-          </motion.div>
-        )}
-
-        {result.status === "success" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="prose prose-neutral prose-sm max-w-none"
-          >
-            <ReactMarkdown
-              components={{
-                p: ({ children }) => <p className="mb-3 leading-relaxed text-neutral-600">{children}</p>,
-                h1: ({ children }) => (
-                  <h1 className="mb-3 mt-4 text-base font-semibold text-neutral-900">{children}</h1>
-                ),
-                h2: ({ children }) => <h2 className="mb-2 mt-3 text-sm font-semibold text-neutral-900">{children}</h2>,
-                h3: ({ children }) => <h3 className="mb-2 mt-3 text-sm font-medium text-neutral-800">{children}</h3>,
-                ul: ({ children }) => <ul className="mb-3 space-y-1 pl-4">{children}</ul>,
-                ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-4">{children}</ol>,
-                li: ({ children }) => <li className="text-neutral-600 marker:text-neutral-300">{children}</li>,
-                code: ({ children }) => (
-                  <code className="rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-xs text-neutral-700">
-                    {children}
-                  </code>
-                ),
-                pre: ({ children }) => (
-                  <pre className="mb-3 overflow-x-auto rounded-lg bg-neutral-900 p-4 text-xs text-neutral-100">
-                    {children}
-                  </pre>
-                ),
-                blockquote: ({ children }) => (
-                  <blockquote className="border-l-2 border-neutral-200 pl-4 text-neutral-500 italic">
-                    {children}
-                  </blockquote>
-                ),
-                strong: ({ children }) => <strong className="font-semibold text-neutral-800">{children}</strong>,
-              }}
-            >
-              {result.text}
-            </ReactMarkdown>
-          </motion.div>
-        )}
-      </div>
-
-      <AnimatePresence>
-        {result.status === "success" && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="grid grid-cols-3 border-t border-neutral-100 bg-neutral-50/50"
-          >
-            <div className="flex flex-col items-center gap-1 py-3">
-              <div className="flex items-center gap-1 text-neutral-400">
-                <TimeIcon className="h-3 w-3" />
-              </div>
-              <span className="text-xs font-medium text-neutral-700">{result.responseTime.toFixed(2)}s</span>
+          {result.tokensPerSecond > 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+              <SpeedIcon className="h-3 w-3" />
+              <span>{Math.round(result.tokensPerSecond)} t/s</span>
             </div>
-            <div className="flex flex-col items-center gap-1 border-x border-neutral-100 py-3">
-              <div className="flex items-center gap-1 text-neutral-400">
-                <SpeedIcon className="h-3 w-3" />
-              </div>
-              <span className="text-xs font-medium text-neutral-700">{result.tokensPerSecond.toFixed(0)} t/s</span>
+          )}
+          {result.totalTokens > 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+              <TokenIcon className="h-3 w-3" />
+              <span>{result.totalTokens} tokens</span>
             </div>
-            <div className="flex flex-col items-center gap-1 py-3">
-              <div className="flex items-center gap-1 text-neutral-400">
-                <TokenIcon className="h-3 w-3" />
-              </div>
-              <span className="text-xs font-medium text-neutral-700">{result.totalTokens}</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </div>
+      )}
     </motion.div>
   )
 }
