@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { motion } from "framer-motion"
@@ -23,9 +23,9 @@ const AVAILABLE_MODELS = [
   { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B", tag: "Production" },
   { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B", tag: "Fast" },
   { id: "meta-llama/llama-4-scout-17b-16e-instruct", name: "Llama 4 Scout", tag: "Preview" },
-  { id: "openai/gpt-oss-120b", name: "GPT-OSS 120B", tag: "OpenAI" },
-  { id: "openai/gpt-oss-20b", name: "GPT-OSS 20B", tag: "OpenAI" },
-  { id: "qwen/qwen3-32b", name: "Qwen 3 32B", tag: "Qwen" },
+  { id: "mistral-saba-24b", name: "Mistral Saba", tag: "Mistral" },
+  { id: "deepseek-r1-distill-llama-70b", name: "DeepSeek R1 70B", tag: "DeepSeek" },
+  { id: "gemma2-9b-it", name: "Gemma 2 9B", tag: "Google" },
   { id: "telecom-expert", name: "Telecom Expert", tag: "Custom" },
 ]
 
@@ -41,7 +41,6 @@ export function LLMComparison() {
 
   const handleCompare = async () => {
     if (!prompt.trim() || selectedModels.length === 0) return
-
     setIsComparing(true)
     setResults(
       selectedModels.map((modelId) => ({
@@ -54,7 +53,6 @@ export function LLMComparison() {
         status: "pending",
       }))
     )
-
     const promises = selectedModels.map(async (modelId) => {
       const startTime = performance.now()
       try {
@@ -63,18 +61,14 @@ export function LLMComparison() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt, model: modelId }),
         })
-
         const data = await response.json()
         const endTime = performance.now()
         const responseTime = (endTime - startTime) / 1000
-
         if (!response.ok) {
           throw new Error(data.error || "Failed to get response")
         }
-
         const totalTokens = data.usage?.totalTokens || 0
         const tokensPerSecond = responseTime > 0 ? totalTokens / responseTime : 0
-
         return {
           model: modelId,
           modelName: AVAILABLE_MODELS.find((m) => m.id === modelId)?.name || modelId,
@@ -97,7 +91,6 @@ export function LLMComparison() {
         }
       }
     })
-
     const completedResults = await Promise.all(promises)
     setResults(completedResults)
     setIsComparing(false)
@@ -110,12 +103,7 @@ export function LLMComparison() {
   }
 
   return (
-    <motion.div
-      className="space-y-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <motion.div className="space-y-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
       <motion.div
         className="rounded-3xl border border-neutral-200/80 bg-white p-8 shadow-sm"
         initial={{ y: 20, opacity: 0 }}
@@ -125,12 +113,7 @@ export function LLMComparison() {
         <div className="space-y-6">
           <PromptInput value={prompt} onChange={setPrompt} disabled={isComparing} />
           <div className="h-px bg-neutral-100" />
-          <ModelSelector
-            models={AVAILABLE_MODELS}
-            selectedModels={selectedModels}
-            onToggle={toggleModel}
-            disabled={isComparing}
-          />
+          <ModelSelector models={AVAILABLE_MODELS} selectedModels={selectedModels} onToggle={toggleModel} disabled={isComparing} />
           <div className="flex justify-end pt-2">
             <Button
               onClick={handleCompare}
@@ -138,27 +121,16 @@ export function LLMComparison() {
               className="group h-11 gap-2 rounded-2xl bg-neutral-900 px-6 text-sm font-medium text-white transition-all hover:bg-neutral-700 disabled:opacity-40"
             >
               {isComparing ? (
-                <>
-                  <LoadingSpinner className="h-4 w-4" />
-                  <span>Comparing...</span>
-                </>
+                <><LoadingSpinner className="h-4 w-4" /><span>Comparing...</span></>
               ) : (
-                <>
-                  <span>Compare Models</span>
-                  <ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </>
+                <><span>Compare Models</span><ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></>
               )}
             </Button>
           </div>
         </div>
       </motion.div>
-
       {results.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <ComparisonResults results={results} />
         </motion.div>
       )}

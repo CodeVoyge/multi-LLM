@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+﻿import { NextRequest, NextResponse } from "next/server"
 
 async function callGroq(prompt: string, model: string) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -27,7 +27,7 @@ async function callGroq(prompt: string, model: string) {
 
 async function callTelecomLLM(prompt: string) {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 45000)
+  const timer = setTimeout(() => controller.abort(), 55000)
   try {
     const res = await fetch(
       `https://mahii2023-my-llm-api.hf.space/ask?question=${encodeURIComponent(prompt)}`,
@@ -53,15 +53,12 @@ export async function POST(req: NextRequest) {
     if (!model) {
       return NextResponse.json({ error: "Model is required" }, { status: 400 })
     }
-
     if (model === "telecom-expert") {
       const result = await callTelecomLLM(prompt)
       return NextResponse.json(result)
     }
-
     const result = await callGroq(prompt, model)
     return NextResponse.json(result)
-
   } catch (err) {
     console.error("COMPARE ERROR:", err)
     const message = err instanceof Error ? err.message : "Server error"
