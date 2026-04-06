@@ -23,9 +23,9 @@ const AVAILABLE_MODELS = [
   { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B", tag: "Production" },
   { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B", tag: "Fast" },
   { id: "meta-llama/llama-4-scout-17b-16e-instruct", name: "Llama 4 Scout", tag: "Preview" },
-  { id: "mistral-saba-24b", name: "Mistral Saba", tag: "Mistral" },
-  { id: "deepseek-r1-distill-llama-70b", name: "DeepSeek R1 70B", tag: "DeepSeek" },
-  { id: "gemma2-9b-it", name: "Gemma 2 9B", tag: "Google" },
+  { id: "qwen/qwen3-32b", name: "Qwen 3 32B", tag: "Qwen" },
+  { id: "openai/gpt-oss-120b", name: "GPT-OSS 120B", tag: "OpenAI" },
+  { id: "moonshotai/kimi-k2-instruct-0905", name: "Kimi K2", tag: "Moonshot" },
   { id: "telecom-expert", name: "Telecom Expert", tag: "Custom" },
 ]
 
