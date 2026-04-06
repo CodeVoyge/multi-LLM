@@ -15,8 +15,8 @@ async function callGroq(prompt: string, model: string) {
     }),
   })
   if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.error?.message || `Groq error ${res.status}`)
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { error?: { message?: string } }).error?.message || `Groq error ${res.status}`)
   }
   const data = await res.json()
   return {
@@ -27,7 +27,7 @@ async function callGroq(prompt: string, model: string) {
 
 async function callTelecomLLM(prompt: string) {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 20000)
+  const timer = setTimeout(() => controller.abort(), 45000)
   try {
     const res = await fetch(
       `https://mahii2023-my-llm-api.hf.space/ask?question=${encodeURIComponent(prompt)}`,
